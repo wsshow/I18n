@@ -1,15 +1,15 @@
-name: goreleaser
+name: Release
 
 on:
   push:
     tags:
-      - '*'
+      - "v*.*.*"
 
 permissions:
   contents: write
 
 jobs:
-  goreleaser:
+  Release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -17,7 +17,7 @@ jobs:
         with:
           fetch-depth: 0
 
-       - name: Create Release
-        uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Release
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
