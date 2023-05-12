@@ -1,0 +1,15 @@
+before:
+  hooks:
+    - go mod tidy
+release:
+  github:
+    owner: wsshow
+    name: I18n
+snapshot:
+  name_template: '{{ .Tag }}-next'
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
