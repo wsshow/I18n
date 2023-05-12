@@ -4,6 +4,8 @@ golang 简单的多语言
 
 ## example
 
+### `lang.json`
+
 ```json
 [
   {
@@ -28,4 +30,40 @@ golang 简单的多语言
     }
   }
 ]
+```
+
+### `main.go`
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/wsshow/I18n"
+)
+
+func main() {
+	l := I18n.NewI18n().LoadFile("./lang.json")
+
+	s := l.T("core program was not found")
+	fmt.Println(s)
+
+	s = l.T("not found core module: %s", "i18n-core")
+	fmt.Println(s)
+
+	s = l.T("current goroutine num: %d", 3)
+	fmt.Println(s)
+
+	l.ToLang("zh")
+
+	s = l.T("core program was not found")
+	fmt.Println(s)
+
+	s = l.T("not found core module: %s", "i18n-core")
+	fmt.Println(s)
+
+	s = l.T("current goroutine num: %d", 3)
+	fmt.Println(s)
+}
 ```
