@@ -16,11 +16,29 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.7
+
+      - name: Install github-changelog-generator
+        run: gem install github_changelog_generator
+
       - name: Generate Changelog
-        uses: github-changelog-generator/github-changelog-generator@v1.16.3
+        run: |
+          export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          github_changelog_generator \
+            --user wsshow \
+            --project I18n \
+            --output CHANGELOG.md \
+            --base CHANGELOG.md \
+            --token $GITHUB_TOKEN
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          body: ${{ steps.generate_changelog.outputs.body }}
+          body: |
+            $(cat CHANGELOG.md)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
