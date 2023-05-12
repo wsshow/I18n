@@ -1,6 +1,8 @@
 before:
   hooks:
     - go mod tidy
+builds:
+  - skip_build: true
 release:
   skip_upload: true
   github:
