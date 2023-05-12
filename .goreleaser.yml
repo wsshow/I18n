@@ -2,6 +2,7 @@ before:
   hooks:
     - go mod tidy
 release:
+  skip_upload: true
   github:
     owner: wsshow
     name: I18n
