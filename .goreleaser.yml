@@ -1,10 +1,9 @@
 before:
   hooks:
     - go mod tidy
-builds:
-  - skip_build: true
+builds: []
+archives: []
 release:
-  skip_upload: true
   github:
     owner: wsshow
     name: I18n
