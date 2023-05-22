@@ -14,53 +14,37 @@ func TestI18n(t *testing.T) {
 	// 默认语言
 	expected := "en"
 	actual := l.Lang()
-	if expected != actual {
-		t.Fatalf("expected: %s\nactual: %s\nerror:expected != actual", expected, actual)
-	}
+	MustEqual(t, expected, actual)
 
 	expected = "core program was not found"
 	actual = l.T("core program was not found")
-	if expected != actual {
-		t.Fatalf("expected: %s\nactual: %s\nerror:expected != actual", expected, actual)
-	}
+	MustEqual(t, expected, actual)
 
 	expected = "not found core module: i18n-core"
 	actual = l.T("not found core module: %s", "i18n-core")
-	if expected != actual {
-		t.Fatalf("expected: %s\nactual: %s\nerror:expected != actual", expected, actual)
-	}
+	MustEqual(t, expected, actual)
 
 	expected = "current goroutine num: 3"
 	actual = l.T("current goroutine num: %d", 3)
-	if expected != actual {
-		t.Fatalf("expected: %s\nactual: %s\nerror:expected != actual", expected, actual)
-	}
+	MustEqual(t, expected, actual)
 
 	// 切换语言
 	l.ToLang("zh")
 	expected = "zh"
 	actual = l.Lang()
-	if expected != actual {
-		t.Fatalf("expected: %s\nactual: %s\nerror:expected != actual", expected, actual)
-	}
+	MustEqual(t, expected, actual)
 
 	expected = "未找到核心程序"
 	actual = l.T("core program was not found")
-	if expected != actual {
-		t.Fatalf("expected: %s\nactual: %s\nerror:expected != actual", expected, actual)
-	}
+	MustEqual(t, expected, actual)
 
 	expected = "未找到核心模块：i18n-core"
 	actual = l.T("not found core module: %s", "i18n-core")
-	if expected != actual {
-		t.Fatalf("expected: %s\nactual: %s\nerror:expected != actual", expected, actual)
-	}
+	MustEqual(t, expected, actual)
 
 	expected = "当前协程数：3"
 	actual = l.T("current goroutine num: %d", 3)
-	if expected != actual {
-		t.Fatalf("expected: %s\nactual: %s\nerror:expected != actual", expected, actual)
-	}
+	MustEqual(t, expected, actual)
 }
 
 func TestI18nGroup(t *testing.T) {
@@ -69,26 +53,19 @@ func TestI18nGroup(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err := l.GetGroup("test")
-	expected := "unknown group: test"
-	actual := err.Error()
-	if expected != actual {
-		t.Fatalf("expected: %s\nactual: %s\nerror:expected != actual", expected, actual)
-	}
+	l0 := l.ToGroup("test_zero")
+	MustEqual(t, l0.Lang(), "en")
 
-	m, err := l.GetGroup("test_zero")
-	if err != nil {
-		t.Fatal(err)
-	}
+	l1 := l.ToGroup("test_one").ToLang("zh")
+	MustEqual(t, l1.Lang(), "zh")
 
-	expected = "core program was not found"
-	actual = m.GT("core program was not found")
-	if expected != actual {
-		t.Fatalf("expected: %s\nactual: %s\nerror:expected != actual", expected, actual)
-	}
+	MustEqual(t, l0.Lang(), "en")
 
-	expected = "not found core module: i18n-core"
-	actual = m.GT("not found core module: %s", "i18n-core")
+	MustEqual(t, l0.T("not found core module: %s", "i18n-core"), "not found core module: i18n-core")
+	MustEqual(t, l1.T("not found core module: %s", "i18n-core"), "未找到核心模块：i18n-core")
+}
+
+func MustEqual(t *testing.T, expected string, actual string) {
 	if expected != actual {
 		t.Fatalf("expected: %s\nactual: %s\nerror:expected != actual", expected, actual)
 	}
