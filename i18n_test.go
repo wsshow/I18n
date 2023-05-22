@@ -1,6 +1,8 @@
 package I18n
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestI18n(t *testing.T) {
 
@@ -56,6 +58,37 @@ func TestI18n(t *testing.T) {
 
 	expected = "当前协程数：3"
 	actual = l.T("current goroutine num: %d", 3)
+	if expected != actual {
+		t.Fatalf("expected: %s\nactual: %s\nerror:expected != actual", expected, actual)
+	}
+}
+
+func TestI18nGroup(t *testing.T) {
+	l := NewI18n().LoadFile("TestData/lang.json")
+	if err := l.Error(); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := l.GetGroup("test")
+	expected := "unknown group: test"
+	actual := err.Error()
+	if expected != actual {
+		t.Fatalf("expected: %s\nactual: %s\nerror:expected != actual", expected, actual)
+	}
+
+	m, err := l.GetGroup("test_zero")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expected = "core program was not found"
+	actual = m.GT("core program was not found")
+	if expected != actual {
+		t.Fatalf("expected: %s\nactual: %s\nerror:expected != actual", expected, actual)
+	}
+
+	expected = "not found core module: i18n-core"
+	actual = m.GT("not found core module: %s", "i18n-core")
 	if expected != actual {
 		t.Fatalf("expected: %s\nactual: %s\nerror:expected != actual", expected, actual)
 	}

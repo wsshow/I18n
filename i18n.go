@@ -12,17 +12,31 @@ type message struct {
 	Langs map[string]string `json:"langs"`
 }
 
+type messageGroup struct {
+	GroupName string    `json:"groupname"`
+	Messages  []message `json:"messages"`
+}
+
 type i18n struct {
-	messages map[string]message
+	messages map[string]map[string]message
 	mutex    sync.RWMutex
 	lang     string
 	err      error
 }
 
+type M map[string]string
+
+func (m M) GT(id string, args ...interface{}) string {
+	if langStr, ok := m[id]; ok {
+		return fmt.Sprintf(langStr, args...)
+	}
+	return id
+}
+
 func NewI18n() *i18n {
 	return &i18n{
 		lang:     "en",
-		messages: make(map[string]message),
+		messages: make(map[string]map[string]message),
 		err:      nil,
 	}
 }
@@ -33,16 +47,20 @@ func (i *i18n) LoadFile(filename string) *i18n {
 		i.err = err
 		return i
 	}
-	var messages []message
-	err = json.Unmarshal(data, &messages)
+	var messageGroups []messageGroup
+	err = json.Unmarshal(data, &messageGroups)
 	if err != nil {
 		i.err = err
 		return i
 	}
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
-	for _, msg := range messages {
-		i.messages[msg.ID] = msg
+	for _, group := range messageGroups {
+		mg := make(map[string]message)
+		for _, msg := range group.Messages {
+			mg[msg.ID] = msg
+		}
+		i.messages[group.GroupName] = mg
 	}
 	return i
 }
@@ -64,12 +82,28 @@ func (i *i18n) ToLang(lang string) *i18n {
 func (i *i18n) T(id string, args ...interface{}) string {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
-	if msg, ok := i.messages[id]; ok {
-		if langStr, ok := msg.Langs[i.lang]; ok {
-			return fmt.Sprintf(langStr, args...)
+	for _, mg := range i.messages {
+		if msg, ok := mg[id]; ok {
+			if langStr, ok := msg.Langs[i.lang]; ok {
+				return fmt.Sprintf(langStr, args...)
+			}
 		}
 	}
 	return id
+}
+
+func (i *i18n) GetGroup(group string) (M, error) {
+	if mg, ok := i.messages[group]; ok {
+		nM := make(M)
+		for _, g := range mg {
+			if langStr, ok := g.Langs[i.lang]; ok {
+				nM[g.ID] = langStr
+			}
+		}
+		return nM, nil
+
+	}
+	return nil, fmt.Errorf("unknown group: %s", group)
 }
 
 func (i *i18n) Error() error {
