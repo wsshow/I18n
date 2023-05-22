@@ -20,17 +20,9 @@ type messageGroup struct {
 type i18n struct {
 	messages map[string]map[string]message
 	mutex    sync.RWMutex
+	group    string
 	lang     string
 	err      error
-}
-
-type M map[string]string
-
-func (m M) GT(id string, args ...interface{}) string {
-	if langStr, ok := m[id]; ok {
-		return fmt.Sprintf(langStr, args...)
-	}
-	return id
 }
 
 func NewI18n() *i18n {
@@ -79,9 +71,34 @@ func (i *i18n) ToLang(lang string) *i18n {
 	return i
 }
 
+func (i *i18n) ToGroup(group string) *i18n {
+	if i.err != nil || i.group == group {
+		return i
+	}
+	i.mutex.Lock()
+	defer i.mutex.Unlock()
+	n := &i18n{
+		messages: i.messages,
+		group:    group,
+		lang:     i.lang,
+		err:      i.err,
+	}
+	return n
+}
+
 func (i *i18n) T(id string, args ...interface{}) string {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
+	if len(i.group) > 0 {
+		if mg, ok := i.messages[i.group]; ok {
+			if msg, ok := mg[id]; ok {
+				if langStr, ok := msg.Langs[i.lang]; ok {
+					return fmt.Sprintf(langStr, args...)
+				}
+			}
+		}
+		return id
+	}
 	for _, mg := range i.messages {
 		if msg, ok := mg[id]; ok {
 			if langStr, ok := msg.Langs[i.lang]; ok {
@@ -90,20 +107,6 @@ func (i *i18n) T(id string, args ...interface{}) string {
 		}
 	}
 	return id
-}
-
-func (i *i18n) GetGroup(group string) (M, error) {
-	if mg, ok := i.messages[group]; ok {
-		nM := make(M)
-		for _, g := range mg {
-			if langStr, ok := g.Langs[i.lang]; ok {
-				nM[g.ID] = langStr
-			}
-		}
-		return nM, nil
-
-	}
-	return nil, fmt.Errorf("unknown group: %s", group)
 }
 
 func (i *i18n) Error() error {
