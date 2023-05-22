@@ -48,7 +48,7 @@ func TestI18n(t *testing.T) {
 }
 
 func TestI18nGroup(t *testing.T) {
-	l := NewI18n().LoadFile("TestData/lang.json")
+	l := NewI18n().LoadFile("TestData/lang_0.json")
 	if err := l.Error(); err != nil {
 		t.Fatal(err)
 	}
@@ -63,6 +63,12 @@ func TestI18nGroup(t *testing.T) {
 
 	MustEqual(t, l0.T("not found core module: %s", "i18n-core"), "not found core module: i18n-core")
 	MustEqual(t, l1.T("not found core module: %s", "i18n-core"), "未找到核心模块：i18n-core")
+}
+
+func TestMultiFile(t *testing.T) {
+	l := NewI18n().LoadFile("TestData/lang_0.json").LoadFile("TestData/lang_1.json")
+	MustEqual(t, l.T("not found core module: %s", "i18n-core"), "not found core module: i18n-core")
+	MustEqual(t, l.T("this is information from other files"), "this is information from other files")
 }
 
 func MustEqual(t *testing.T, expected string, actual string) {
