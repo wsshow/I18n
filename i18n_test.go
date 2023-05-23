@@ -1,8 +1,37 @@
 package I18n
 
 import (
+	"bytes"
+	"reflect"
 	"testing"
 )
+
+func ObjEqual(expected, actual interface{}) bool {
+	if expected == nil || actual == nil {
+		return expected == actual
+	}
+
+	exp, ok := expected.([]byte)
+	if !ok {
+		return reflect.DeepEqual(expected, actual)
+	}
+
+	act, ok := actual.([]byte)
+	if !ok {
+		return false
+	}
+	if exp == nil || act == nil {
+		return exp == nil && act == nil
+	}
+	return bytes.Equal(exp, act)
+}
+
+func MustEqual(t *testing.T, expected, actual interface{}) {
+	if ObjEqual(expected, actual) {
+		return
+	}
+	t.Fatalf("expected: %s\nactual: %s\nerror:expected != actual", expected, actual)
+}
 
 func TestI18n(t *testing.T) {
 
@@ -71,8 +100,12 @@ func TestMultiFile(t *testing.T) {
 	MustEqual(t, l.T("this is information from other files"), "this is information from other files")
 }
 
-func MustEqual(t *testing.T, expected string, actual string) {
-	if expected != actual {
-		t.Fatalf("expected: %s\nactual: %s\nerror:expected != actual", expected, actual)
-	}
+func TestGetLangs(t *testing.T) {
+	l := NewI18n().LoadFile("TestData/lang_0.json")
+	MustEqual(t, []string{"en", "zh"}, l.GetLangs())
+}
+
+func TestGetGroups(t *testing.T) {
+	l := NewI18n().LoadFile("TestData/lang_0.json").LoadFile("TestData/lang_1.json")
+	MustEqual(t, []string{"test_zero", "test_one", "test_two"}, l.GetGroups())
 }
